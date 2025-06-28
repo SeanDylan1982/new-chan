@@ -5,11 +5,11 @@ export const connectDB = async () => {
     const mongoURI = process.env.MONGO_URI;
     
     console.log('🔍 Starting MongoDB connection process...');
-    console.log('📍 MongoDB URI:', mongoURI ? `${mongoURI.substring(0, 20)}...` : 'URI not found');
+    console.log('📍 Mongo_URI:', mongoURI ? `${mongoURI.substring(0, 20)}...` : 'URI not found');
     
     if (!mongoURI) {
-      console.error('❌ MONGODB_URI environment variable is not set!');
-      throw new Error('MONGODB_URI is not defined in environment variables');
+      console.error('❌ MONGO_URI environment variable is not set!');
+      throw new Error('MONGO_URI is not defined in environment variables');
     }
 
     console.log('🔄 Attempting to connect to MongoDB...');
