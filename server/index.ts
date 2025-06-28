@@ -22,13 +22,15 @@ console.log('🔐 JWT Secret exists:', !!process.env.JWT_SECRET);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize MongoDB connection
+// Initialize MongoDB connection (don't await - let it connect in background)
 console.log('🔄 Initializing database connection...');
-connectDB().then(() => {
-  console.log('✅ Database initialization complete');
-}).catch((error) => {
-  console.error('❌ Database initialization failed:', error);
-});
+connectDB()
+  .then(() => {
+    console.log('✅ Database initialization complete');
+  })
+  .catch((error) => {
+    console.error('❌ Database initialization failed:', error.message);
+  });
 
 // Security middleware
 app.use(helmet());
@@ -51,7 +53,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging middleware (only for API routes to reduce noise)
 app.use('/api', (req, res, next) => {
-  console.log(`📥 API ${req.method} ${req.path}`);
+  console.log(`📥 API ${req.method} ${req.path} - DB State: ${mongoose.connection.readyState}`);
   next();
 });
 
@@ -85,14 +87,14 @@ app.get('/api/health', async (req, res) => {
     }
   }
 
-  res.json({ 
+  const healthData = { 
     status: 'OK', 
     timestamp: new Date().toISOString(),
     database: {
       status: dbStatus,
       readyState: dbState,
-      host: mongoose.connection.host,
-      name: mongoose.connection.name,
+      host: mongoose.connection.host || 'not connected',
+      name: mongoose.connection.name || 'not connected',
       stats: dbStats
     },
     server: {
@@ -100,16 +102,20 @@ app.get('/api/health', async (req, res) => {
       environment: process.env.NODE_ENV || 'development',
       uptime: process.uptime()
     }
-  });
+  };
+
+  console.log('🏥 Health check requested - DB Status:', dbStatus);
+  res.json(healthData);
 });
 
 // Root endpoint (minimal logging)
 app.get('/', (req, res) => {
+  const dbState = mongoose.connection.readyState;
   res.json({ 
     message: 'NeoBoard API Server',
     status: 'running',
     version: '1.0.0',
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    database: dbState === 1 ? 'connected' : `not connected (state: ${dbState})`,
     endpoints: {
       health: '/api/health',
       boards: '/api/boards',
@@ -135,5 +141,28 @@ app.listen(PORT, () => {
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
   console.log(`📋 API Base: http://localhost:${PORT}/api`);
-  console.log(`🔍 Database Status: ${mongoose.connection.readyState === 1 ? 'Connected' : 'Not Connected'}`);
+  console.log(`🔍 Initial Database Status: ${mongoose.connection.readyState === 1 ? 'Connected' : 'Not Connected'}`);
+  
+  // Check database connection status every 5 seconds for the first minute
+  let checkCount = 0;
+  const connectionChecker = setInterval(() => {
+    checkCount++;
+    const dbState = mongoose.connection.readyState;
+    const status = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting', 
+      3: 'disconnecting'
+    }[dbState] || 'unknown';
+    
+    console.log(`🔍 DB Status Check ${checkCount}: ${status} (${dbState})`);
+    
+    if (dbState === 1) {
+      console.log('✅ Database connection established!');
+      clearInterval(connectionChecker);
+    } else if (checkCount >= 12) { // Stop after 1 minute
+      console.log('⏰ Stopped checking database status after 1 minute');
+      clearInterval(connectionChecker);
+    }
+  }, 5000);
 });
