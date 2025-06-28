@@ -1,0 +1,17 @@
+user: admin
+password: pyOPCiMFJGDRVB42
+connection string: mongodb+srv://admin:pyOPCiMFJGDRVB42@cluster0.dsslpoy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
+connect: mongodb+srv://admin:pyOPCiMFJGDRVB42@cluster0.dsslpoy.mongodb.net/
+
+console: mongosh "mongodb+srv://cluster0.dsslpoy.mongodb.net/" --apiVersion 1 --username admin
+
+JDBC 
+Database: myVirtualDatabase
+Driver: jdbc:mongodb://atlas-sql-68600b79519652061f683ab0-evm4kr.a.query.mongodb.net/myVirtualDatabase?ssl=true&authSource=admin
+port: 27017
+
+
+MONGO_USER=admin
+MONGO_PASSWORD=pyOPCiMFJGDRVB42
+MONGO_URI=mongodb+srv://process.env.MONGO_USER:process.env.MONGO_PASSWORD@cluster0.dsslpoy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
