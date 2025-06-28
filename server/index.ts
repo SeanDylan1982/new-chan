@@ -22,6 +22,12 @@ console.log('🔐 JWT Secret exists:', !!process.env.JWT_SECRET);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://new-chan.netlify.app', "https://new-chan.vercel.app"],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}));
+
 // Initialize MongoDB connection (don't await - let it connect in background)
 console.log('🔄 Initializing database connection...');
 connectDB()
