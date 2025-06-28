@@ -22,6 +22,21 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack, onThreadSel
     setIsCreateModalOpen(false);
   };
 
+  const getCategoryColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'technology':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'entertainment':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'creative':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'general':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
   const filteredAndSortedThreads = threads
     .filter(thread => 
       thread.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -81,7 +96,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack, onThreadSel
 
         <div className="flex items-center space-x-3 mb-4">
           <h1 className="text-3xl font-bold text-white">{board.name}</h1>
-          <div className="bg-gray-700/50 px-3 py-1 rounded-full text-sm text-gray-400 border border-gray-600">
+          <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getCategoryColor(board.category)}`}>
             {board.category}
           </div>
         </div>
@@ -105,7 +120,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack, onThreadSel
               placeholder="Search threads..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
             />
           </div>
         </div>
@@ -115,7 +130,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack, onThreadSel
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
+            className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
           >
             <option value="activity">Latest Activity</option>
             <option value="newest">Newest First</option>
@@ -131,7 +146,7 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack, onThreadSel
         {stickyThreads.length > 0 && (
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <h2 className="text-lg font-semibold text-yellow-400">Pinned Threads</h2>
+              <h2 className="text-lg font-semibold text-yellow-600">Pinned Threads</h2>
               <div className="flex-1 h-px bg-gradient-to-r from-yellow-400/30 to-transparent"></div>
             </div>
             {stickyThreads.map(thread => (
@@ -149,9 +164,9 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack, onThreadSel
           <div className="space-y-4">
             {stickyThreads.length > 0 && (
               <div className="flex items-center space-x-2">
-                <h2 className="text-lg font-semibold text-white">Threads</h2>
-                <div className="flex-1 h-px bg-gradient-to-r from-gray-600 to-transparent"></div>
-                <span className="text-sm text-gray-400">{regularThreads.length} threads</span>
+                <h2 className="text-lg font-semibold text-gray-900">Threads</h2>
+                <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
+                <span className="text-sm text-gray-500">{regularThreads.length} threads</span>
               </div>
             )}
             {regularThreads.map(thread => (
@@ -167,12 +182,12 @@ export const BoardView: React.FC<BoardViewProps> = ({ board, onBack, onThreadSel
         {/* Empty State */}
         {filteredAndSortedThreads.length === 0 && (
           <div className="text-center py-12">
-            <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-8">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-8">
               <SortDesc className="mx-auto text-gray-400 mb-4" size={48} />
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 {searchQuery ? 'No threads found' : 'No threads yet'}
               </h3>
-              <p className="text-gray-400 mb-6">
+              <p className="text-gray-600 mb-6">
                 {searchQuery 
                   ? 'Try adjusting your search terms or filters.'
                   : 'Be the first to start a discussion in this board!'

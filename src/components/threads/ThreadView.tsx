@@ -84,7 +84,7 @@ export const ThreadView: React.FC<ThreadViewProps> = ({ thread, onBack }) => {
             {thread.tags.map(tag => (
               <span
                 key={tag}
-                className="bg-gray-700/50 px-3 py-1 rounded-full text-sm text-gray-400 border border-gray-600"
+                className="bg-gray-100 px-3 py-1 rounded-full text-sm text-gray-700 border border-gray-200"
               >
                 {tag}
               </span>
@@ -121,20 +121,20 @@ export const ThreadView: React.FC<ThreadViewProps> = ({ thread, onBack }) => {
 
       {/* Reply Form */}
       {!thread.isLocked && (
-        <div id="reply-form" className="bg-gray-800/50 border border-gray-700 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
+        <div id="reply-form" className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             {replyToId ? `Replying to #${replyToId.slice(-6)}` : 'Post a Reply'}
           </h3>
           
           {replyToId && (
-            <div className="mb-4 p-3 bg-gray-700/30 border-l-4 border-cyan-400/50 rounded-r-lg">
+            <div className="mb-4 p-3 bg-gray-100 border-l-4 border-cyan-300 rounded-r-lg">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-gray-600">
                   Replying to #{replyToId.slice(-6)}
                 </span>
                 <button
                   onClick={() => setReplyToId(undefined)}
-                  className="text-gray-400 hover:text-white text-sm transition-colors"
+                  className="text-gray-500 hover:text-gray-700 text-sm transition-colors"
                 >
                   Cancel
                 </button>
@@ -148,7 +148,7 @@ export const ThreadView: React.FC<ThreadViewProps> = ({ thread, onBack }) => {
               onChange={(e) => setReplyContent(e.target.value)}
               placeholder="Write your reply..."
               rows={4}
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all resize-none"
+              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all resize-none"
               maxLength={5000}
               required
             />
@@ -176,10 +176,10 @@ export const ThreadView: React.FC<ThreadViewProps> = ({ thread, onBack }) => {
       )}
 
       {thread.isLocked && (
-        <div className="bg-red-900/20 border border-red-800 rounded-xl p-6 text-center">
-          <Lock className="mx-auto text-red-400 mb-2" size={32} />
-          <h3 className="text-lg font-semibold text-red-400 mb-2">Thread Locked</h3>
-          <p className="text-gray-400">This thread has been locked and no new replies can be posted.</p>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <Lock className="mx-auto text-red-500 mb-2" size={32} />
+          <h3 className="text-lg font-semibold text-red-600 mb-2">Thread Locked</h3>
+          <p className="text-red-500">This thread has been locked and no new replies can be posted.</p>
         </div>
       )}
     </div>

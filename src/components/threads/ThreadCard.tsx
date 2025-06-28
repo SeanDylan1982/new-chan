@@ -28,34 +28,34 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({ thread, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className={`bg-gray-800/50 border border-gray-700 rounded-xl p-6 hover:bg-gray-800/70 hover:border-cyan-400/30 transition-all duration-300 cursor-pointer transform hover:scale-[1.01] group ${
-        thread.isSticky ? 'border-yellow-500/30 bg-yellow-900/10' : ''
+      className={`bg-gray-50 border border-gray-200 rounded-xl p-6 hover:bg-white hover:border-cyan-300 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.01] group ${
+        thread.isSticky ? 'border-yellow-300 bg-yellow-50' : ''
       }`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-2">
             {thread.isSticky && (
-              <Pin size={16} className="text-yellow-400" />
+              <Pin size={16} className="text-yellow-600" />
             )}
             {thread.isLocked && (
-              <Lock size={16} className="text-red-400" />
+              <Lock size={16} className="text-red-600" />
             )}
-            <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors line-clamp-2">
+            <h3 className="text-lg font-bold text-gray-900 group-hover:text-cyan-600 transition-colors line-clamp-2">
               {thread.title}
             </h3>
           </div>
           
-          <p className="text-gray-300 text-sm mb-3 line-clamp-2">{thread.content}</p>
+          <p className="text-gray-600 text-sm mb-3 line-clamp-2">{thread.content}</p>
           
           <div className="flex items-center space-x-2 mb-3">
-            <div className="flex items-center space-x-1 text-gray-400">
+            <div className="flex items-center space-x-1 text-gray-500">
               <User size={14} />
               <span className="text-xs">
                 {thread.author.isAnonymous ? 'Anonymous' : thread.author.username}
               </span>
             </div>
-            <div className="flex items-center space-x-1 text-gray-500">
+            <div className="flex items-center space-x-1 text-gray-400">
               <Clock size={12} />
               <span className="text-xs">{formatTimeAgo(thread.createdAt)}</span>
             </div>
@@ -63,12 +63,12 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({ thread, onClick }) => {
 
           {thread.tags && thread.tags.length > 0 && (
             <div className="flex items-center space-x-2 mb-3">
-              <Tag size={14} className="text-gray-500" />
+              <Tag size={14} className="text-gray-400" />
               <div className="flex flex-wrap gap-1">
                 {thread.tags.map(tag => (
                   <span
                     key={tag}
-                    className="bg-gray-700/50 px-2 py-1 rounded-full text-xs text-gray-400 border border-gray-600"
+                    className="bg-gray-100 px-2 py-1 rounded-full text-xs text-gray-600 border border-gray-200"
                   >
                     {tag}
                   </span>
@@ -80,7 +80,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({ thread, onClick }) => {
 
         {thread.images.length > 0 && (
           <div className="ml-4 flex-shrink-0">
-            <div className="w-16 h-16 bg-gray-700 rounded-lg overflow-hidden">
+            <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
               <img
                 src={thread.images[0]}
                 alt="Thread preview"
@@ -100,7 +100,7 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({ thread, onClick }) => {
       </div>
 
       <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center space-x-4 text-gray-400">
+        <div className="flex items-center space-x-4 text-gray-500">
           <div className="flex items-center space-x-1">
             <MessageCircle size={16} />
             <span>{formatNumber(thread.replyCount)} replies</span>
@@ -113,18 +113,18 @@ export const ThreadCard: React.FC<ThreadCardProps> = ({ thread, onClick }) => {
           )}
         </div>
         
-        <div className="flex items-center space-x-1 text-gray-500">
+        <div className="flex items-center space-x-1 text-gray-400">
           <span className="text-xs">Last reply: {formatTimeAgo(thread.lastReply)}</span>
         </div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-700">
+      <div className="mt-4 pt-4 border-t border-gray-200">
         <div className="flex items-center justify-between">
           <div className="text-xs text-gray-500">
             Created by {thread.author.isAnonymous ? 'Anonymous' : thread.author.username}
           </div>
-          <div className="bg-gradient-to-r from-cyan-400/20 to-blue-500/20 border border-cyan-400/30 px-3 py-1 rounded-full">
-            <span className="text-xs text-cyan-400 font-medium">View Thread →</span>
+          <div className="bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 px-3 py-1 rounded-full">
+            <span className="text-xs text-cyan-600 font-medium">View Thread →</span>
           </div>
         </div>
       </div>

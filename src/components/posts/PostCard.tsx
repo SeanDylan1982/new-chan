@@ -28,8 +28,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onReply, showReplyTo =
     : post.content.substring(0, 500) + '...';
 
   return (
-    <div className={`bg-gray-800/50 border border-gray-700 rounded-xl p-6 ${
-      post.isOP ? 'border-cyan-400/30 bg-cyan-900/10' : ''
+    <div className={`bg-gray-50 border border-gray-200 rounded-xl p-6 hover:bg-white hover:shadow-md transition-all duration-200 ${
+      post.isOP ? 'border-cyan-300 bg-cyan-50' : ''
     }`}>
       {/* Post Header */}
       <div className="flex items-center justify-between mb-4">
@@ -38,7 +38,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onReply, showReplyTo =
             post.isOP 
               ? 'bg-gradient-to-r from-cyan-400 to-blue-500' 
               : post.author.isAnonymous 
-                ? 'bg-gray-600' 
+                ? 'bg-gray-400' 
                 : 'bg-gradient-to-r from-purple-400 to-pink-500'
           }`}>
             <User size={20} className="text-white" />
@@ -47,17 +47,17 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onReply, showReplyTo =
           <div>
             <div className="flex items-center space-x-2">
               <span className={`font-medium ${
-                post.isOP ? 'text-cyan-400' : 'text-white'
+                post.isOP ? 'text-cyan-600' : 'text-gray-900'
               }`}>
                 {post.author.isAnonymous ? 'Anonymous' : post.author.username}
               </span>
               {post.isOP && (
-                <span className="bg-cyan-600/20 border border-cyan-600/40 px-2 py-1 rounded-full text-xs text-cyan-400">
+                <span className="bg-cyan-100 border border-cyan-200 px-2 py-1 rounded-full text-xs text-cyan-600 font-medium">
                   OP
                 </span>
               )}
             </div>
-            <div className="flex items-center space-x-2 text-xs text-gray-400">
+            <div className="flex items-center space-x-2 text-xs text-gray-500">
               <Clock size={12} />
               <span>{formatTimeAgo(post.createdAt)}</span>
               <span>#{post.id.slice(-6)}</span>
@@ -65,15 +65,15 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onReply, showReplyTo =
           </div>
         </div>
 
-        <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
+        <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
           <MoreHorizontal size={16} />
         </button>
       </div>
 
       {/* Reply Reference */}
       {showReplyTo && post.replyTo && (
-        <div className="mb-4 p-3 bg-gray-700/30 border-l-4 border-cyan-400/50 rounded-r-lg">
-          <div className="text-sm text-gray-400">
+        <div className="mb-4 p-3 bg-gray-100 border-l-4 border-cyan-300 rounded-r-lg">
+          <div className="text-sm text-gray-600">
             <Reply size={14} className="inline mr-1" />
             Replying to #{post.replyTo.slice(-6)}
           </div>
@@ -82,13 +82,13 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onReply, showReplyTo =
 
       {/* Post Content */}
       <div className="mb-4">
-        <div className="text-gray-200 whitespace-pre-wrap leading-relaxed">
+        <div className="text-gray-800 whitespace-pre-wrap leading-relaxed">
           {displayContent}
         </div>
         {isLongContent && (
           <button
             onClick={() => setShowFullContent(!showFullContent)}
-            className="text-cyan-400 hover:text-cyan-300 text-sm mt-2 transition-colors"
+            className="text-cyan-600 hover:text-cyan-700 text-sm mt-2 transition-colors"
           >
             {showFullContent ? 'Show less' : 'Show more'}
           </button>
@@ -120,18 +120,18 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onReply, showReplyTo =
       )}
 
       {/* Post Actions */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
         <div className="flex items-center space-x-4">
           <button
             onClick={() => onReply(post.id)}
-            className="flex items-center space-x-2 text-gray-400 hover:text-cyan-400 transition-colors"
+            className="flex items-center space-x-2 text-gray-500 hover:text-cyan-600 transition-colors"
           >
             <Reply size={16} />
             <span className="text-sm">Reply</span>
           </button>
         </div>
 
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-gray-400">
           Post #{post.id.slice(-6)}
         </div>
       </div>
