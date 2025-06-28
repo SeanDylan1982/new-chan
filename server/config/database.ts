@@ -23,18 +23,25 @@ export const connectDB = async () => {
     }
 
     console.log('🔄 Attempting to connect to MongoDB Atlas...');
-    console.log('⏱️ Connection timeout set to 10 seconds...');
+    console.log('⏱️ Connection timeout set to 30 seconds...');
     
-    // Add connection options for Atlas with more aggressive timeouts
+    // Updated connection options with more lenient timeouts and better error handling
     const connectionOptions = {
-      serverSelectionTimeoutMS: 10000, // 10 seconds timeout
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
+      serverSelectionTimeoutMS: 30000, // Increased to 30 seconds
+      socketTimeoutMS: 60000, // Increased socket timeout
+      connectTimeoutMS: 30000, // Increased connection timeout
       bufferCommands: false,
       maxPoolSize: 10,
-      minPoolSize: 5,
+      minPoolSize: 1, // Reduced minimum pool size
       retryWrites: true,
-      w: 'majority'
+      w: 'majority',
+      // Add these options for better Atlas compatibility
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      // Heartbeat frequency for connection monitoring
+      heartbeatFrequencyMS: 10000,
+      // Server selection retry
+      serverSelectionRetryDelayMS: 2000,
     };
 
     console.log('🔧 Connection options:', JSON.stringify(connectionOptions, null, 2));
@@ -54,6 +61,7 @@ export const connectDB = async () => {
 
     mongoose.connection.on('error', (err) => {
       console.error('❌ MongoDB connection error during connection:', err.message);
+      console.error('❌ Error details:', err);
     });
 
     mongoose.connection.on('disconnected', () => {
@@ -64,16 +72,66 @@ export const connectDB = async () => {
       console.log('🔄 MongoDB reconnected');
     });
 
-    // Add a timeout promise to catch hanging connections
+    // Test connection with a simple ping first
+    console.log('🏓 Testing basic connectivity...');
+    
+    try {
+      // Create a temporary connection to test basic connectivity
+      const testConnection = await mongoose.createConnection(mongoURI, {
+        serverSelectionTimeoutMS: 10000,
+        connectTimeoutMS: 10000,
+      });
+      
+      console.log('✅ Basic connectivity test passed');
+      await testConnection.close();
+      
+    } catch (testError) {
+      console.error('❌ Basic connectivity test failed:', testError.message);
+      
+      // Provide specific guidance based on error type
+      if (testError.message.includes('ENOTFOUND') || testError.message.includes('ECONNREFUSED')) {
+        console.error('🌐 Network connectivity issue detected');
+        console.error('💡 Possible solutions:');
+        console.error('   1. Check your internet connection');
+        console.error('   2. Verify the MongoDB Atlas cluster hostname');
+        console.error('   3. Check if your firewall is blocking outbound connections');
+        throw new Error('Network connectivity issue - cannot reach MongoDB Atlas');
+      }
+      
+      if (testError.message.includes('Authentication failed')) {
+        console.error('🔐 Authentication issue detected');
+        console.error('💡 Possible solutions:');
+        console.error('   1. Verify username and password in MONGO_URI');
+        console.error('   2. Check if the database user exists in Atlas');
+        console.error('   3. Ensure the user has proper permissions');
+        throw new Error('Authentication failed - check credentials');
+      }
+      
+      if (testError.message.includes('not authorized') || testError.message.includes('IP')) {
+        console.error('🚫 IP whitelist issue detected');
+        console.error('💡 Solutions:');
+        console.error('   1. Add your current IP to MongoDB Atlas Network Access');
+        console.error('   2. Or add 0.0.0.0/0 for development (not recommended for production)');
+        console.error('   3. Check if your IP has changed recently');
+        throw new Error('IP not whitelisted - check MongoDB Atlas Network Access');
+      }
+      
+      // Re-throw the original error if we can't categorize it
+      throw testError;
+    }
+
+    // If basic test passed, proceed with full connection
+    console.log('⏳ Establishing full connection...');
     const connectionPromise = mongoose.connect(mongoURI, connectionOptions);
     
+    // Increased timeout to 45 seconds for full connection
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
-        reject(new Error('Connection timeout after 15 seconds'));
-      }, 15000);
+        reject(new Error('Full connection timeout after 45 seconds'));
+      }, 45000);
     });
 
-    console.log('⏳ Starting connection race (15 second timeout)...');
+    console.log('⏳ Starting connection race (45 second timeout)...');
     const conn = await Promise.race([connectionPromise, timeoutPromise]);
     
     console.log(`✅ MongoDB Connected Successfully!`);
@@ -82,14 +140,14 @@ export const connectDB = async () => {
     console.log(`🔌 Connection State: ${conn.connection.readyState}`);
     console.log(`🆔 Connection ID: ${conn.connection.id}`);
     
-    // Test the connection by counting documents
+    // Test the connection by counting documents with error handling
     try {
       console.log('🧪 Testing database operations...');
       const db = conn.connection.db;
       
       console.log('📋 Listing collections...');
       const collections = await db.listCollections().toArray();
-      console.log(`📋 Collections Available: ${collections.map(c => c.name).join(', ')}`);
+      console.log(`📋 Collections Available: ${collections.length > 0 ? collections.map(c => c.name).join(', ') : 'None'}`);
       
       console.log('🔢 Counting documents...');
       const boardCount = await db.collection('boards').countDocuments();
@@ -111,7 +169,7 @@ export const connectDB = async () => {
       
     } catch (statsError) {
       console.warn('⚠️ Could not fetch database stats:', statsError.message);
-      console.warn('   This might indicate a permissions issue or database problem');
+      console.warn('   This might indicate a permissions issue, but connection is established');
     }
     
     // Graceful shutdown
@@ -128,38 +186,53 @@ export const connectDB = async () => {
     console.error('❌ MongoDB Connection Failed!');
     console.error('📋 Error Type:', error.name);
     console.error('📋 Error Message:', error.message);
-    console.error('📋 Error Stack:', error.stack);
     
+    // Don't log the full stack trace as it's not helpful for connection issues
+    if (process.env.NODE_ENV === 'development') {
+      console.error('📋 Error Stack:', error.stack);
+    }
+    
+    // Provide actionable guidance based on error patterns
     if (error.message.includes('timeout')) {
-      console.error('⏰ Connection timed out. Possible causes:');
-      console.error('   1. Network connectivity issues');
-      console.error('   2. MongoDB Atlas cluster is paused or unavailable');
-      console.error('   3. Firewall blocking the connection');
-      console.error('   4. IP address not whitelisted in Atlas');
+      console.error('⏰ Connection timed out. Most common causes:');
+      console.error('   1. 🌐 IP address not whitelisted in MongoDB Atlas Network Access');
+      console.error('   2. 🔌 Network connectivity issues or firewall blocking connection');
+      console.error('   3. ⏸️ MongoDB Atlas cluster is paused or unavailable');
+      console.error('   4. 🌍 DNS resolution issues');
+      console.error('');
+      console.error('🔧 Quick fixes to try:');
+      console.error('   1. Go to MongoDB Atlas → Network Access → Add IP Address → Add Current IP');
+      console.error('   2. Or temporarily add 0.0.0.0/0 (allow all IPs) for testing');
+      console.error('   3. Check if your cluster is running in MongoDB Atlas');
+      console.error('   4. Try connecting with MongoDB Compass using the same URI');
     }
     
     if (error.name === 'MongoServerSelectionError') {
-      console.error('💡 Possible solutions for Atlas connection:');
-      console.error('   1. Check if your IP address is whitelisted in MongoDB Atlas');
-      console.error('   2. Verify username and password are correct');
-      console.error('   3. Ensure the database name exists');
-      console.error('   4. Check if the cluster is running');
-      console.error('   5. Verify network connectivity');
-      console.error('   6. Try connecting from MongoDB Compass with the same URI');
+      console.error('💡 Server selection failed. This usually means:');
+      console.error('   1. 🚫 IP not whitelisted in MongoDB Atlas');
+      console.error('   2. 🔐 Invalid credentials (username/password)');
+      console.error('   3. 🌐 Network/DNS issues');
+      console.error('   4. ⏸️ Cluster is paused or deleted');
     }
     
     if (error.name === 'MongoParseError') {
       console.error('💡 MongoDB URI parsing error - check the connection string format');
+      console.error('   Expected format: mongodb+srv://username:password@cluster.mongodb.net/database');
     }
     
     // Show current connection state
     console.error('🔍 Current connection state:', mongoose.connection.readyState);
     console.error('🔍 Connection states: 0=disconnected, 1=connected, 2=connecting, 3=disconnecting');
     
-    // Don't exit the process, let the server continue running
+    console.error('');
     console.error('🚀 Server will continue running without database connection');
     console.error('🔧 Fix the database connection and restart the server');
+    console.error('');
+    console.error('📞 Need help? Check these resources:');
+    console.error('   - MongoDB Atlas Network Access: https://cloud.mongodb.com/');
+    console.error('   - Connection troubleshooting: https://docs.mongodb.com/manual/reference/connection-string/');
     
-    // Don't call process.exit(1) - let the server run
+    // Don't exit the process - let the server run without DB
+    return null;
   }
 };
