@@ -73,11 +73,11 @@ const boardSchema = new Schema<IBoard>({
   timestamps: true
 });
 
-// Indexes for performance
-boardSchema.index({ name: 1 });
-boardSchema.index({ category: 1 });
-boardSchema.index({ isActive: 1 });
-boardSchema.index({ lastActivity: -1 });
+// Remove duplicate index definitions
+// boardSchema.index({ name: 1 });
+// boardSchema.index({ category: 1 });
+// boardSchema.index({ isActive: 1 });
+// boardSchema.index({ lastActivity: -1 });
 
 // Update lastActivity when board is accessed
 boardSchema.methods.updateActivity = function() {

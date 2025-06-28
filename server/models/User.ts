@@ -65,10 +65,10 @@ const userSchema = new Schema<IUser>({
   timestamps: true
 });
 
-// Index for performance
-userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
-userSchema.index({ isAnonymous: 1 });
+// Remove duplicate index definitions - let Mongoose handle them automatically
+// userSchema.index({ email: 1 });
+// userSchema.index({ username: 1 });
+// userSchema.index({ isAnonymous: 1 });
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
