@@ -3,14 +3,14 @@ import { useBoards } from '../../hooks/useBoards';
 import { BoardCard } from './BoardCard';
 import { CreateBoardModal } from './CreateBoardModal';
 import { CreateBoardData } from '../../types';
-import { Loader2, Zap, Plus } from 'lucide-react';
+import { Loader2, Zap, Plus, AlertCircle } from 'lucide-react';
 
 interface BoardListProps {
   onBoardSelect: (boardId: string) => void;
 }
 
 export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
-  const { boards, isLoading, createBoard } = useBoards();
+  const { boards, isLoading, error, createBoard } = useBoards();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const handleCreateBoard = async (data: CreateBoardData) => {
@@ -18,12 +18,38 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
     setIsCreateModalOpen(false);
   };
 
+  // Debug logging
+  console.log('🎯 BoardList render:', { 
+    boardsCount: boards.length, 
+    isLoading, 
+    error,
+    boards: boards.map(b => ({ id: b.id, name: b.name }))
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <Loader2 className="animate-spin text-cyan-400 mx-auto mb-4" size={48} />
           <p className="text-gray-400">Loading boards...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <AlertCircle className="text-red-400 mx-auto mb-4" size={48} />
+          <h3 className="text-xl font-semibold text-white mb-2">Connection Error</h3>
+          <p className="text-gray-400 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-cyan-300 hover:to-blue-400 transition-all"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -56,8 +82,17 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
         </button>
       </div>
 
+      {/* Debug Info */}
+      <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 text-sm text-gray-300">
+        <h4 className="font-semibold mb-2">Debug Info:</h4>
+        <p>Boards loaded: {boards.length}</p>
+        <p>Categories: {categories.join(', ')}</p>
+        <p>Loading: {isLoading ? 'Yes' : 'No'}</p>
+        <p>Error: {error || 'None'}</p>
+      </div>
+
       {/* Boards by Category */}
-      {categories.map(category => {
+      {categories.length > 0 && categories.map(category => {
         const categoryBoards = boards.filter(board => board.category === category);
         
         return (
@@ -83,7 +118,7 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
         );
       })}
 
-      {boards.length === 0 && (
+      {boards.length === 0 && !isLoading && !error && (
         <div className="text-center py-12">
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-8">
             <Plus className="mx-auto text-gray-400 mb-4" size={48} />
