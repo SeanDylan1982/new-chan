@@ -4,8 +4,10 @@ import { BoardList } from './components/boards/BoardList';
 import { BoardView } from './components/boards/BoardView';
 import { ThreadView } from './components/threads/ThreadView';
 import { AuthModal } from './components/auth/AuthModal';
+import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { useBoards } from './hooks/useBoards';
 import { useThreads } from './hooks/useThreads';
+import { useAuth } from './hooks/useAuth';
 import { AuthModalState } from './types';
 
 type ViewState = 
@@ -14,6 +16,7 @@ type ViewState =
   | { type: 'thread'; threadId: string; boardId: string };
 
 function App() {
+  const { isInitialized } = useAuth();
   const [authModalState, setAuthModalState] = useState<AuthModalState>({
     isOpen: false,
     mode: 'signin'
@@ -85,7 +88,7 @@ function App() {
       
       case 'board':
         const board = getCurrentBoard();
-        if (!board) return <div>Board not found</div>;
+        if (!board) return <div className="text-center py-12 text-gray-500">Board not found</div>;
         return (
           <BoardView
             board={board}
@@ -96,7 +99,7 @@ function App() {
       
       case 'thread':
         const thread = getCurrentThread();
-        if (!thread) return <div>Thread not found</div>;
+        if (!thread) return <div className="text-center py-12 text-gray-500">Thread not found</div>;
         return (
           <ThreadView
             thread={thread}
@@ -108,6 +111,11 @@ function App() {
         return <BoardList onBoardSelect={handleBoardSelect} />;
     }
   };
+
+  // Show loading spinner while initializing auth
+  if (!isInitialized) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">

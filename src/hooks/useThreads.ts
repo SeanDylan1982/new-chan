@@ -1,122 +1,79 @@
 import { useState, useEffect } from 'react';
 import { Thread, Post, CreateThreadData } from '../types';
+import { threadsAPI, postsAPI } from '../services/api';
 
 export const useThreads = (boardId?: string) => {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!boardId) return;
+    if (!boardId) {
+      setIsLoading(false);
+      return;
+    }
 
     const fetchThreads = async () => {
       setIsLoading(true);
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const mockThreads: Thread[] = [
-        {
-          id: 'thread-1',
-          boardId,
-          title: 'Welcome to the new board!',
-          content: 'This is the first thread on this board. Feel free to discuss anything related to the topic.',
-          author: {
-            id: 'admin',
-            username: 'Admin',
-            email: 'admin@example.com',
-            isAnonymous: false,
-            joinDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
-            postCount: 150
-          },
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-          lastReply: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-          replyCount: 23,
-          isSticky: true,
-          isLocked: false,
-          images: [],
-          tags: ['announcement', 'welcome']
-        },
-        {
-          id: 'thread-2',
-          boardId,
-          title: 'What are your thoughts on the latest developments?',
-          content: 'I\'ve been following the recent news and wanted to get everyone\'s perspective on what\'s happening.',
-          author: {
-            id: 'user-1',
-            username: 'TechEnthusiast',
-            email: '',
-            isAnonymous: false,
-            joinDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString(),
-            postCount: 42
-          },
-          createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-          lastReply: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-          replyCount: 8,
-          isSticky: false,
-          isLocked: false,
-          images: [],
-          tags: ['discussion']
-        },
-        {
-          id: 'thread-3',
-          boardId,
-          title: 'Check out this amazing project I\'ve been working on',
-          content: 'After months of development, I\'m finally ready to share what I\'ve been building. Would love to get your feedback!',
-          author: {
-            id: 'anon-1',
-            username: 'Anonymous',
-            email: '',
-            isAnonymous: true,
-            joinDate: new Date().toISOString(),
-            postCount: 0
-          },
-          createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-          lastReply: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
-          replyCount: 15,
-          isSticky: false,
-          isLocked: false,
-          images: ['https://images.pexels.com/photos/1181671/pexels-photo-1181671.jpeg'],
-          tags: ['project', 'showcase']
-        }
-      ];
-      
-      setThreads(mockThreads);
-      setIsLoading(false);
+      try {
+        const response = await threadsAPI.getByBoard(boardId);
+        setThreads(response.threads);
+      } catch (error) {
+        console.error('Failed to fetch threads:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchThreads();
   }, [boardId]);
 
   const createThread = async (data: CreateThreadData) => {
-    // TODO: Replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (!boardId) throw new Error('Board ID is required');
     
-    const newThread: Thread = {
-      id: `thread-${Date.now()}`,
-      boardId: boardId!,
-      title: data.title,
-      content: data.content,
-      author: {
-        id: 'current-user',
-        username: 'CurrentUser',
-        email: 'user@example.com',
-        isAnonymous: false,
-        joinDate: new Date().toISOString(),
-        postCount: 1
-      },
-      createdAt: new Date().toISOString(),
-      lastReply: new Date().toISOString(),
-      replyCount: 0,
-      isSticky: false,
-      isLocked: false,
-      images: [], // TODO: Handle image uploads
-      tags: data.tags
-    };
-    
-    setThreads(prev => [newThread, ...prev]);
-    return newThread;
+    try {
+      const response = await threadsAPI.create({
+        boardId,
+        title: data.title,
+        content: data.content,
+        images: [], // TODO: Handle image uploads
+        tags: data.tags
+      });
+      
+      setThreads(prev => [response.thread, ...prev]);
+      return response.thread;
+    } catch (error) {
+      throw error;
+    }
   };
 
-  return { threads, isLoading, createThread };
+  const updateThread = async (id: string, data: { isSticky?: boolean; isLocked?: boolean }) => {
+    try {
+      const response = await threadsAPI.update(id, data);
+      setThreads(prev => prev.map(thread => 
+        thread.id === id ? response.thread : thread
+      ));
+      return response.thread;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const deleteThread = async (id: string) => {
+    try {
+      await threadsAPI.delete(id);
+      setThreads(prev => prev.filter(thread => thread.id !== id));
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  return { 
+    threads, 
+    isLoading, 
+    createThread, 
+    updateThread, 
+    deleteThread 
+  };
 };
 
 export const usePosts = (threadId?: string) => {
@@ -124,94 +81,70 @@ export const usePosts = (threadId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!threadId) return;
+    if (!threadId) {
+      setIsLoading(false);
+      return;
+    }
 
     const fetchPosts = async () => {
       setIsLoading(true);
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const mockPosts: Post[] = [
-        {
-          id: 'post-1',
-          threadId,
-          content: 'This is the original post content. Thanks for checking out this thread!',
-          author: {
-            id: 'user-1',
-            username: 'ThreadCreator',
-            email: '',
-            isAnonymous: false,
-            joinDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 15).toISOString(),
-            postCount: 42
-          },
-          createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-          images: [],
-          isOP: true
-        },
-        {
-          id: 'post-2',
-          threadId,
-          content: 'Great thread! I\'ve been thinking about this topic a lot lately.',
-          author: {
-            id: 'user-2',
-            username: 'RegularUser',
-            email: '',
-            isAnonymous: false,
-            joinDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString(),
-            postCount: 28
-          },
-          createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-          images: []
-        },
-        {
-          id: 'post-3',
-          threadId,
-          content: 'Interesting perspective. I have a different take on this...',
-          author: {
-            id: 'anon-1',
-            username: 'Anonymous',
-            email: '',
-            isAnonymous: true,
-            joinDate: new Date().toISOString(),
-            postCount: 0
-          },
-          createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-          replyTo: 'post-2',
-          images: []
-        }
-      ];
-      
-      setPosts(mockPosts);
-      setIsLoading(false);
+      try {
+        const response = await postsAPI.getByThread(threadId);
+        setPosts(response.posts);
+      } catch (error) {
+        console.error('Failed to fetch posts:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchPosts();
   }, [threadId]);
 
   const createPost = async (content: string, images: File[] = [], replyTo?: string) => {
-    // TODO: Replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 500));
+    if (!threadId) throw new Error('Thread ID is required');
     
-    const newPost: Post = {
-      id: `post-${Date.now()}`,
-      threadId: threadId!,
-      content,
-      author: {
-        id: 'current-user',
-        username: 'CurrentUser',
-        email: 'user@example.com',
-        isAnonymous: false,
-        joinDate: new Date().toISOString(),
-        postCount: 1
-      },
-      createdAt: new Date().toISOString(),
-      replyTo,
-      images: [] // TODO: Handle image uploads
-    };
-    
-    setPosts(prev => [...prev, newPost]);
-    return newPost;
+    try {
+      const response = await postsAPI.create({
+        threadId,
+        content,
+        images: [], // TODO: Handle image uploads
+        replyTo
+      });
+      
+      setPosts(prev => [...prev, response.post]);
+      return response.post;
+    } catch (error) {
+      throw error;
+    }
   };
 
-  return { posts, isLoading, createPost };
+  const updatePost = async (id: string, content: string) => {
+    try {
+      const response = await postsAPI.update(id, { content });
+      setPosts(prev => prev.map(post => 
+        post.id === id ? response.post : post
+      ));
+      return response.post;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const deletePost = async (id: string) => {
+    try {
+      await postsAPI.delete(id);
+      setPosts(prev => prev.filter(post => post.id !== id));
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  return { 
+    posts, 
+    isLoading, 
+    createPost, 
+    updatePost, 
+    deletePost 
+  };
 };

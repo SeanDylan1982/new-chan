@@ -1,93 +1,62 @@
 import { useState, useEffect } from 'react';
 import { Board, CreateBoardData } from '../types';
+import { boardsAPI } from '../services/api';
 
-// Mock boards hook - ready for backend integration
 export const useBoards = () => {
   const [boards, setBoards] = useState<Board[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Replace with actual API call
     const fetchBoards = async () => {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const mockBoards: Board[] = [
-        {
-          id: 'tech',
-          name: '/tech/',
-          description: 'Technology & Programming',
-          category: 'Technology',
-          threadCount: 1247,
-          postCount: 12450,
-          lastActivity: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-          isNSFW: false
-        },
-        {
-          id: 'gaming',
-          name: '/g/',
-          description: 'Video Games & Gaming Culture',
-          category: 'Entertainment',
-          threadCount: 892,
-          postCount: 8920,
-          lastActivity: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
-          isNSFW: false
-        },
-        {
-          id: 'art',
-          name: '/art/',
-          description: 'Digital Art & Creative Works',
-          category: 'Creative',
-          threadCount: 456,
-          postCount: 4560,
-          lastActivity: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
-          isNSFW: false
-        },
-        {
-          id: 'random',
-          name: '/r/',
-          description: 'Random Discussion',
-          category: 'General',
-          threadCount: 2341,
-          postCount: 23410,
-          lastActivity: new Date(Date.now() - 1000 * 30).toISOString(),
-          isNSFW: false
-        }
-      ];
-      
-      setBoards(mockBoards);
-      setIsLoading(false);
+      try {
+        const response = await boardsAPI.getAll();
+        setBoards(response.boards);
+      } catch (error) {
+        console.error('Failed to fetch boards:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchBoards();
   }, []);
 
   const createBoard = async (data: CreateBoardData) => {
-    // TODO: Replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Check if board name already exists
-    const existingBoard = boards.find(board => 
-      board.name.toLowerCase() === data.name.toLowerCase()
-    );
-    
-    if (existingBoard) {
-      throw new Error('A board with this name already exists');
+    try {
+      const response = await boardsAPI.create(data);
+      setBoards(prev => [response.board, ...prev]);
+      return response.board;
+    } catch (error) {
+      throw error;
     }
-    
-    const newBoard: Board = {
-      id: data.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
-      name: data.name,
-      description: data.description,
-      category: data.category,
-      threadCount: 0,
-      postCount: 0,
-      lastActivity: new Date().toISOString(),
-      isNSFW: data.isNSFW
-    };
-    
-    setBoards(prev => [newBoard, ...prev]);
-    return newBoard;
   };
 
-  return { boards, isLoading, createBoard };
+  const updateBoard = async (id: string, data: Partial<CreateBoardData>) => {
+    try {
+      const response = await boardsAPI.update(id, data);
+      setBoards(prev => prev.map(board => 
+        board.id === id ? response.board : board
+      ));
+      return response.board;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const deleteBoard = async (id: string) => {
+    try {
+      await boardsAPI.delete(id);
+      setBoards(prev => prev.filter(board => board.id !== id));
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  return { 
+    boards, 
+    isLoading, 
+    createBoard, 
+    updateBoard, 
+    deleteBoard 
+  };
 };
