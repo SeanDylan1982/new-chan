@@ -18,14 +18,26 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
     ...options,
   };
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  console.log(`🌐 API Request: ${config.method || 'GET'} ${API_BASE_URL}${endpoint}`);
   
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: 'Network error' }));
-    throw new Error(error.error || `HTTP error! status: ${response.status}`);
-  }
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    
+    console.log(`📡 API Response: ${response.status} ${response.statusText}`);
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Network error' }));
+      console.error('❌ API Error:', error);
+      throw new Error(error.error || `HTTP error! status: ${response.status}`);
+    }
 
-  return response.json();
+    const data = await response.json();
+    console.log(`✅ API Success:`, data);
+    return data;
+  } catch (error) {
+    console.error('🚨 API Request Failed:', error);
+    throw error;
+  }
 };
 
 // Auth API

@@ -4,6 +4,9 @@ export const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGODB_URI;
     
+    console.log('🔍 Attempting to connect to MongoDB...');
+    console.log('📍 MongoDB URI:', mongoURI ? 'URI found' : 'URI not found');
+    
     if (!mongoURI) {
       throw new Error('MONGODB_URI is not defined in environment variables');
     }
@@ -11,6 +14,7 @@ export const connectDB = async () => {
     const conn = await mongoose.connect(mongoURI);
     
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log(`📊 Database Name: ${conn.connection.name}`);
     
     // Handle connection events
     mongoose.connection.on('error', (err) => {
@@ -30,6 +34,7 @@ export const connectDB = async () => {
     
   } catch (error) {
     console.error('❌ Error connecting to MongoDB:', error);
+    console.error('📋 Error details:', error.message);
     process.exit(1);
   }
 };

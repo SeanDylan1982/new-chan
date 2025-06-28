@@ -10,7 +10,13 @@ import threadRoutes from './routes/threads.js';
 import postRoutes from './routes/posts.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
+// Load environment variables first
 dotenv.config();
+
+console.log('🚀 Starting NeoBoard Server...');
+console.log('📊 Environment:', process.env.NODE_ENV);
+console.log('🔑 MongoDB URI exists:', !!process.env.MONGODB_URI);
+console.log('🔐 JWT Secret exists:', !!process.env.JWT_SECRET);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -45,7 +51,11 @@ app.use('/api/posts', postRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
 });
 
 // Error handling middleware
@@ -53,10 +63,12 @@ app.use(errorHandler);
 
 // 404 handler
 app.use('*', (req, res) => {
+  console.log('❌ 404 - Route not found:', req.originalUrl);
   res.status(404).json({ error: 'Route not found' });
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV}`);
 });
