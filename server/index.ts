@@ -23,7 +23,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://new-chan.netlify.app', "https://new-chan.vercel.app"],
+  origin: ['http://localhost:5173', 'https://new-chan.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
 }));

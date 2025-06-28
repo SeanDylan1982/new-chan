@@ -53,7 +53,7 @@ router.get('/board/:boardId', optionalAuth, async (req: AuthRequest, res) => {
       title: thread.title,
       content: thread.content,
       author: {
-        id: thread.author.id,
+        id: thread.author._id,
         username: thread.author.username,
         email: '',
         isAnonymous: thread.author.isAnonymous,
