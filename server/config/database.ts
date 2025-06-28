@@ -76,7 +76,7 @@ export const connectDB = async () => {
       console.error('   4. Check firewall/network settings');
     }
     
-    console.error('🔧 Current MongoDB URI:', process.env.MONGODB_URI);
+    console.error('🔧 Current MongoDB URI:', process.env.MONGO_URI);
     process.exit(1);
   }
 };
