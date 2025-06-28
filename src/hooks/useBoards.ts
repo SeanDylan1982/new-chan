@@ -5,14 +5,22 @@ import { boardsAPI } from '../services/api';
 export const useBoards = () => {
   const [boards, setBoards] = useState<Board[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBoards = async () => {
+      console.log('🔄 Fetching boards...');
+      setIsLoading(true);
+      setError(null);
+      
       try {
         const response = await boardsAPI.getAll();
-        setBoards(response.boards);
+        console.log('✅ Boards fetched successfully:', response);
+        setBoards(response.boards || []);
       } catch (error) {
-        console.error('Failed to fetch boards:', error);
+        console.error('❌ Failed to fetch boards:', error);
+        setError(error instanceof Error ? error.message : 'Failed to fetch boards');
+        setBoards([]);
       } finally {
         setIsLoading(false);
       }
@@ -23,10 +31,13 @@ export const useBoards = () => {
 
   const createBoard = async (data: CreateBoardData) => {
     try {
+      console.log('🔄 Creating board:', data);
       const response = await boardsAPI.create(data);
+      console.log('✅ Board created successfully:', response);
       setBoards(prev => [response.board, ...prev]);
       return response.board;
     } catch (error) {
+      console.error('❌ Failed to create board:', error);
       throw error;
     }
   };
@@ -55,6 +66,7 @@ export const useBoards = () => {
   return { 
     boards, 
     isLoading, 
+    error,
     createBoard, 
     updateBoard, 
     deleteBoard 
