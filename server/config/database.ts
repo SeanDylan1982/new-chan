@@ -41,7 +41,7 @@ export const connectDB = async () => {
       // Heartbeat frequency for connection monitoring
       heartbeatFrequencyMS: 10000,
       // Server selection retry
-      serverSelectionRetryDelayMS: 2000,
+      // serverSelectionRetryDelayMS: 2000,
     };
 
     console.log('🔧 Connection options:', JSON.stringify(connectionOptions, null, 2));
