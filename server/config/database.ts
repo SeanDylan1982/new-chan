@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 export const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI;
+    const mongoURI = process.env.MONGO_URI;
     
     console.log('🔍 Starting MongoDB connection process...');
     console.log('📍 MongoDB URI:', mongoURI ? `${mongoURI.substring(0, 20)}...` : 'URI not found');
