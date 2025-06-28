@@ -56,3 +56,10 @@ export interface CreateThreadData {
   images: File[];
   tags: string[];
 }
+
+export interface CreateBoardData {
+  name: string;
+  description: string;
+  category: string;
+  isNSFW: boolean;
+}

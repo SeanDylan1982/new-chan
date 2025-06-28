@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Board } from '../types';
+import { Board, CreateBoardData } from '../types';
 
 // Mock boards hook - ready for backend integration
 export const useBoards = () => {
@@ -61,5 +61,33 @@ export const useBoards = () => {
     fetchBoards();
   }, []);
 
-  return { boards, isLoading };
+  const createBoard = async (data: CreateBoardData) => {
+    // TODO: Replace with actual API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Check if board name already exists
+    const existingBoard = boards.find(board => 
+      board.name.toLowerCase() === data.name.toLowerCase()
+    );
+    
+    if (existingBoard) {
+      throw new Error('A board with this name already exists');
+    }
+    
+    const newBoard: Board = {
+      id: data.name.toLowerCase().replace(/[^a-z0-9]/g, ''),
+      name: data.name,
+      description: data.description,
+      category: data.category,
+      threadCount: 0,
+      postCount: 0,
+      lastActivity: new Date().toISOString(),
+      isNSFW: data.isNSFW
+    };
+    
+    setBoards(prev => [newBoard, ...prev]);
+    return newBoard;
+  };
+
+  return { boards, isLoading, createBoard };
 };

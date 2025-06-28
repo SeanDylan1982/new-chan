@@ -1,14 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useBoards } from '../../hooks/useBoards';
 import { BoardCard } from './BoardCard';
-import { Loader2, Zap } from 'lucide-react';
+import { CreateBoardModal } from './CreateBoardModal';
+import { CreateBoardData } from '../../types';
+import { Loader2, Zap, Plus } from 'lucide-react';
 
 interface BoardListProps {
   onBoardSelect: (boardId: string) => void;
 }
 
 export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
-  const { boards, isLoading } = useBoards();
+  const { boards, isLoading, createBoard } = useBoards();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const handleCreateBoard = async (data: CreateBoardData) => {
+    await createBoard(data);
+    setIsCreateModalOpen(false);
+  };
 
   if (isLoading) {
     return (
@@ -33,10 +41,19 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
           </div>
         </div>
         <h1 className="text-4xl font-bold text-white mb-2">Welcome to NeoBoard</h1>
-        <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+        <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-6">
           Discover communities, share ideas, and connect with people who share your interests.
           Choose a board below to start exploring.
         </p>
+        
+        {/* Create Board Button */}
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="inline-flex items-center space-x-2 bg-gradient-to-r from-green-400 to-emerald-500 text-white px-6 py-3 rounded-lg hover:from-green-300 hover:to-emerald-400 transition-all transform hover:scale-105 font-semibold shadow-lg"
+        >
+          <Plus size={20} />
+          <span>Create New Board</span>
+        </button>
       </div>
 
       {/* Boards by Category */}
@@ -68,9 +85,27 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
 
       {boards.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-400 text-lg">No boards available at the moment.</p>
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-8">
+            <Plus className="mx-auto text-gray-400 mb-4" size={48} />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No boards yet</h3>
+            <p className="text-gray-600 mb-6">
+              Be the first to create a board and start building your community!
+            </p>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="bg-gradient-to-r from-cyan-400 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-cyan-300 hover:to-blue-400 transition-all"
+            >
+              Create First Board
+            </button>
+          </div>
         </div>
       )}
+
+      <CreateBoardModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateBoard}
+      />
     </div>
   );
 };
