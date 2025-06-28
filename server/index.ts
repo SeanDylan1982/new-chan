@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import { connectDB } from './config/database.js';
 import authRoutes from './routes/auth.js';
 import boardRoutes from './routes/boards.js';
@@ -43,6 +44,12 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.path}`);
+  next();
+});
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/boards', boardRoutes);
@@ -54,7 +61,17 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    port: PORT
+  });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'NeoBoard API Server',
+    status: 'running',
+    version: '1.0.0'
   });
 });
 
@@ -64,11 +81,12 @@ app.use(errorHandler);
 // 404 handler
 app.use('*', (req, res) => {
   console.log('❌ 404 - Route not found:', req.originalUrl);
-  res.status(404).json({ error: 'Route not found' });
+  res.status(404).json({ error: `Route not found: ${req.originalUrl}` });
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
 });
