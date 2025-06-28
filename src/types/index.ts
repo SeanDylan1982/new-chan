@@ -31,6 +31,7 @@ export interface Thread {
   isSticky: boolean;
   isLocked: boolean;
   images: string[];
+  tags?: string[];
 }
 
 export interface Post {
@@ -41,9 +42,17 @@ export interface Post {
   createdAt: string;
   replyTo?: string;
   images: string[];
+  isOP?: boolean;
 }
 
 export interface AuthModalState {
   isOpen: boolean;
   mode: 'signin' | 'signup';
+}
+
+export interface CreateThreadData {
+  title: string;
+  content: string;
+  images: File[];
+  tags: string[];
 }
