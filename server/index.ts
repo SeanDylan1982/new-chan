@@ -16,7 +16,7 @@ dotenv.config();
 
 console.log('🚀 Starting NeoBoard Server...');
 console.log('📊 Environment:', process.env.NODE_ENV || 'development');
-console.log('🔑 MongoDB URI exists:', !!process.env.MONGODB_URI);
+console.log('🔑 MongoDB URI exists:', !!process.env.MONGO_URI);
 console.log('🔐 JWT Secret exists:', !!process.env.JWT_SECRET);
 
 const app = express();
