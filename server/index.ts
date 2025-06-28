@@ -15,15 +15,20 @@ import { errorHandler } from './middleware/errorHandler.js';
 dotenv.config();
 
 console.log('🚀 Starting NeoBoard Server...');
-console.log('📊 Environment:', process.env.NODE_ENV);
+console.log('📊 Environment:', process.env.NODE_ENV || 'development');
 console.log('🔑 MongoDB URI exists:', !!process.env.MONGODB_URI);
 console.log('🔐 JWT Secret exists:', !!process.env.JWT_SECRET);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Connect to MongoDB
-connectDB();
+// Initialize MongoDB connection
+console.log('🔄 Initializing database connection...');
+connectDB().then(() => {
+  console.log('✅ Database initialization complete');
+}).catch((error) => {
+  console.error('❌ Database initialization failed:', error);
+});
 
 // Security middleware
 app.use(helmet());
@@ -56,14 +61,45 @@ app.use('/api/boards', boardRoutes);
 app.use('/api/threads', threadRoutes);
 app.use('/api/posts', postRoutes);
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// Health check endpoint with database status
+app.get('/api/health', async (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  const dbStatus = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting'
+  }[dbState] || 'unknown';
+
+  let dbStats = {};
+  if (dbState === 1) {
+    try {
+      dbStats = {
+        boards: await mongoose.connection.db.collection('boards').countDocuments(),
+        users: await mongoose.connection.db.collection('users').countDocuments(),
+        threads: await mongoose.connection.db.collection('threads').countDocuments(),
+        posts: await mongoose.connection.db.collection('posts').countDocuments(),
+      };
+    } catch (error) {
+      dbStats = { error: 'Could not fetch stats' };
+    }
+  }
+
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development'
+    database: {
+      status: dbStatus,
+      readyState: dbState,
+      host: mongoose.connection.host,
+      name: mongoose.connection.name,
+      stats: dbStats
+    },
+    server: {
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime()
+    }
   });
 });
 
@@ -73,6 +109,7 @@ app.get('/', (req, res) => {
     message: 'NeoBoard API Server',
     status: 'running',
     version: '1.0.0',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     endpoints: {
       health: '/api/health',
       boards: '/api/boards',
@@ -98,4 +135,5 @@ app.listen(PORT, () => {
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
   console.log(`📋 API Base: http://localhost:${PORT}/api`);
+  console.log(`🔍 Database Status: ${mongoose.connection.readyState === 1 ? 'Connected' : 'Not Connected'}`);
 });
