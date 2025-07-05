@@ -15,6 +15,11 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+// Helper function to generate realistic timestamps
+const getRecentTimestamp = (minutesAgo: number) => {
+  return new Date(Date.now() - (minutesAgo * 60 * 1000)).toISOString();
+};
+
 // Mock data for when backend is not available
 const mockBoards = [
   {
@@ -24,7 +29,7 @@ const mockBoards = [
     category: 'Technology',
     threadCount: 42,
     postCount: 1337,
-    lastActivity: new Date().toISOString(),
+    lastActivity: getRecentTimestamp(5), // 5 minutes ago
     isNSFW: false
   },
   {
@@ -34,7 +39,7 @@ const mockBoards = [
     category: 'Entertainment',
     threadCount: 28,
     postCount: 892,
-    lastActivity: new Date(Date.now() - 3600000).toISOString(),
+    lastActivity: getRecentTimestamp(15), // 15 minutes ago
     isNSFW: false
   },
   {
@@ -44,7 +49,7 @@ const mockBoards = [
     category: 'Creative',
     threadCount: 15,
     postCount: 456,
-    lastActivity: new Date(Date.now() - 7200000).toISOString(),
+    lastActivity: getRecentTimestamp(45), // 45 minutes ago
     isNSFW: false
   },
   {
@@ -54,7 +59,7 @@ const mockBoards = [
     category: 'General',
     threadCount: 67,
     postCount: 2341,
-    lastActivity: new Date(Date.now() - 1800000).toISOString(),
+    lastActivity: getRecentTimestamp(2), // 2 minutes ago
     isNSFW: false
   }
 ];
@@ -64,22 +69,64 @@ const mockThreads = [
     id: '1',
     boardId: '1',
     title: 'Welcome to the Tech Board!',
-    content: 'This is a sample thread to demonstrate the application functionality.',
+    content: 'This is a sample thread to demonstrate the application functionality. Feel free to explore and test all the features!',
     author: {
       id: '1',
       username: 'TechModerator',
       email: '',
       isAnonymous: false,
-      joinDate: new Date().toISOString(),
-      postCount: 100
+      joinDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days ago
+      postCount: 156
     },
-    createdAt: new Date().toISOString(),
-    lastReply: new Date().toISOString(),
+    createdAt: getRecentTimestamp(6), // 6 minutes ago
+    lastReply: getRecentTimestamp(2), // 2 minutes ago
     replyCount: 5,
     isSticky: true,
     isLocked: false,
     images: [],
     tags: ['welcome', 'announcement']
+  },
+  {
+    id: '2',
+    boardId: '1',
+    title: 'Best JavaScript frameworks in 2025?',
+    content: 'What are your thoughts on the current state of JavaScript frameworks? React, Vue, Svelte, or something else?',
+    author: {
+      id: '2',
+      username: 'DevEnthusiast',
+      email: '',
+      isAnonymous: false,
+      joinDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days ago
+      postCount: 42
+    },
+    createdAt: getRecentTimestamp(25), // 25 minutes ago
+    lastReply: getRecentTimestamp(8), // 8 minutes ago
+    replyCount: 12,
+    isSticky: false,
+    isLocked: false,
+    images: [],
+    tags: ['javascript', 'frameworks', 'discussion']
+  },
+  {
+    id: '3',
+    boardId: '2',
+    title: 'Gaming Setup Showcase 2025',
+    content: 'Share your gaming setups! Post pics of your battlestations and let\'s see what everyone is working with.',
+    author: {
+      id: '3',
+      username: 'GamerPro',
+      email: '',
+      isAnonymous: false,
+      joinDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), // 60 days ago
+      postCount: 89
+    },
+    createdAt: getRecentTimestamp(120), // 2 hours ago
+    lastReply: getRecentTimestamp(15), // 15 minutes ago
+    replyCount: 23,
+    isSticky: false,
+    isLocked: false,
+    images: [],
+    tags: ['setup', 'showcase', 'hardware']
   }
 ];
 
@@ -87,18 +134,85 @@ const mockPosts = [
   {
     id: '1',
     threadId: '1',
-    content: 'Welcome to NeoBoard! This is a demonstration of the message board functionality.',
+    content: 'Welcome to NeoBoard! This is a demonstration of the message board functionality. You can create threads, reply to posts, and explore different boards. All features are fully functional in this demo!',
     author: {
       id: '1',
       username: 'TechModerator',
       email: '',
       isAnonymous: false,
-      joinDate: new Date().toISOString(),
-      postCount: 100
+      joinDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      postCount: 156
     },
-    createdAt: new Date().toISOString(),
+    createdAt: getRecentTimestamp(6), // 6 minutes ago
     images: [],
     isOP: true
+  },
+  {
+    id: '2',
+    threadId: '1',
+    content: 'Thanks for setting this up! The interface looks really clean and modern.',
+    author: {
+      id: '4',
+      username: 'NewUser2025',
+      email: '',
+      isAnonymous: false,
+      joinDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+      postCount: 7
+    },
+    createdAt: getRecentTimestamp(4), // 4 minutes ago
+    images: [],
+    isOP: false,
+    replyTo: '1'
+  },
+  {
+    id: '3',
+    threadId: '1',
+    content: 'Agreed! Love the dark theme and the responsive design. Works great on mobile too.',
+    author: {
+      id: '5',
+      username: 'DesignLover',
+      email: '',
+      isAnonymous: false,
+      joinDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+      postCount: 23
+    },
+    createdAt: getRecentTimestamp(3), // 3 minutes ago
+    images: [],
+    isOP: false,
+    replyTo: '2'
+  },
+  {
+    id: '4',
+    threadId: '1',
+    content: 'The authentication system is smooth too. Anonymous posting works perfectly!',
+    author: {
+      id: '6',
+      username: 'Anonymous',
+      email: '',
+      isAnonymous: true,
+      joinDate: new Date().toISOString(),
+      postCount: 1
+    },
+    createdAt: getRecentTimestamp(2), // 2 minutes ago
+    images: [],
+    isOP: false
+  },
+  {
+    id: '5',
+    threadId: '2',
+    content: 'I\'ve been using React for years, but I\'m really impressed with what Svelte has been doing lately. The performance is incredible and the developer experience is so smooth.',
+    author: {
+      id: '7',
+      username: 'FullStackDev',
+      email: '',
+      isAnonymous: false,
+      joinDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(), // 45 days ago
+      postCount: 134
+    },
+    createdAt: getRecentTimestamp(20), // 20 minutes ago
+    images: [],
+    isOP: false,
+    replyTo: '2'
   }
 ];
 
@@ -110,7 +224,7 @@ const mockUsers = [
     email: 'demo@example.com',
     password: 'password', // In real app, this would be hashed
     isAnonymous: false,
-    joinDate: new Date().toISOString(),
+    joinDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     postCount: 5
   }
 ];
@@ -315,9 +429,10 @@ const handleMockRequest = async (endpoint: string, options: RequestInit = {}) =>
   // For create operations, return success with mock data
   if (method === 'POST') {
     if (endpoint === '/boards') {
+      const boardData = JSON.parse(options.body as string);
       const newBoard = {
         id: Date.now().toString(),
-        ...JSON.parse(options.body as string),
+        ...boardData,
         threadCount: 0,
         postCount: 0,
         lastActivity: new Date().toISOString()
@@ -333,9 +448,9 @@ const handleMockRequest = async (endpoint: string, options: RequestInit = {}) =>
         ...threadData,
         author: {
           id: 'demo-user',
-          username: 'Anonymous',
+          username: getAuthToken()?.includes('anonymous') ? 'Anonymous' : 'DemoUser',
           email: '',
-          isAnonymous: true,
+          isAnonymous: getAuthToken()?.includes('anonymous') || false,
           joinDate: new Date().toISOString(),
           postCount: 0
         },
@@ -347,6 +462,15 @@ const handleMockRequest = async (endpoint: string, options: RequestInit = {}) =>
         images: []
       };
       mockThreads.unshift(newThread);
+      
+      // Update board thread count
+      const board = mockBoards.find(b => b.id === threadData.boardId);
+      if (board) {
+        board.threadCount++;
+        board.postCount++;
+        board.lastActivity = new Date().toISOString();
+      }
+      
       return { success: true, thread: newThread };
     }
     
@@ -357,9 +481,9 @@ const handleMockRequest = async (endpoint: string, options: RequestInit = {}) =>
         ...postData,
         author: {
           id: 'demo-user',
-          username: 'Anonymous',
+          username: getAuthToken()?.includes('anonymous') ? 'Anonymous' : 'DemoUser',
           email: '',
-          isAnonymous: true,
+          isAnonymous: getAuthToken()?.includes('anonymous') || false,
           joinDate: new Date().toISOString(),
           postCount: 0
         },
@@ -368,6 +492,21 @@ const handleMockRequest = async (endpoint: string, options: RequestInit = {}) =>
         isOP: false
       };
       mockPosts.push(newPost);
+      
+      // Update thread reply count
+      const thread = mockThreads.find(t => t.id === postData.threadId);
+      if (thread) {
+        thread.replyCount++;
+        thread.lastReply = new Date().toISOString();
+        
+        // Update board post count
+        const board = mockBoards.find(b => b.id === thread.boardId);
+        if (board) {
+          board.postCount++;
+          board.lastActivity = new Date().toISOString();
+        }
+      }
+      
       return { success: true, post: newPost };
     }
   }
