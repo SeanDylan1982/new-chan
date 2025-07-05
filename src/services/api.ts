@@ -102,6 +102,19 @@ const mockPosts = [
   }
 ];
 
+// Mock users database
+const mockUsers = [
+  {
+    id: '1',
+    username: 'DemoUser',
+    email: 'demo@example.com',
+    password: 'password', // In real app, this would be hashed
+    isAnonymous: false,
+    joinDate: new Date().toISOString(),
+    postCount: 5
+  }
+];
+
 // Get auth token from localStorage
 const getAuthToken = () => {
   return localStorage.getItem('authToken');
@@ -155,7 +168,134 @@ const handleMockRequest = async (endpoint: string, options: RequestInit = {}) =>
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
   
-  // Handle different endpoints
+  // Handle authentication endpoints
+  if (endpoint === '/auth/register' && method === 'POST') {
+    const { username, email, password } = JSON.parse(options.body as string);
+    
+    // Check if user already exists
+    const existingUser = mockUsers.find(u => u.email === email || u.username === username);
+    if (existingUser) {
+      throw new Error(existingUser.email === email ? 'Email already registered' : 'Username already taken');
+    }
+    
+    // Create new user
+    const newUser = {
+      id: Date.now().toString(),
+      username,
+      email,
+      password, // In real app, this would be hashed
+      isAnonymous: false,
+      joinDate: new Date().toISOString(),
+      postCount: 0
+    };
+    
+    mockUsers.push(newUser);
+    
+    const token = 'demo-token-' + Date.now();
+    localStorage.setItem('authToken', token);
+    
+    return {
+      success: true,
+      token,
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        isAnonymous: newUser.isAnonymous,
+        joinDate: newUser.joinDate,
+        postCount: newUser.postCount
+      }
+    };
+  }
+  
+  if (endpoint === '/auth/login' && method === 'POST') {
+    const { email, password } = JSON.parse(options.body as string);
+    
+    // Find user by email
+    const user = mockUsers.find(u => u.email === email);
+    if (!user || user.password !== password) {
+      throw new Error('Invalid credentials');
+    }
+    
+    const token = 'demo-token-' + Date.now();
+    localStorage.setItem('authToken', token);
+    
+    return {
+      success: true,
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        isAnonymous: user.isAnonymous,
+        joinDate: user.joinDate,
+        postCount: user.postCount
+      }
+    };
+  }
+  
+  if (endpoint === '/auth/anonymous' && method === 'POST') {
+    const mockUser = {
+      id: 'demo-anonymous-' + Date.now(),
+      username: 'Anonymous',
+      email: '',
+      isAnonymous: true,
+      joinDate: new Date().toISOString(),
+      postCount: 0
+    };
+    
+    const token = 'demo-token-anonymous-' + Date.now();
+    localStorage.setItem('authToken', token);
+    
+    return {
+      success: true,
+      token,
+      user: mockUser
+    };
+  }
+  
+  if (endpoint === '/auth/me' && method === 'GET') {
+    const token = getAuthToken();
+    if (!token || !token.startsWith('demo-token')) {
+      throw new Error('Not authenticated');
+    }
+    
+    // For anonymous users
+    if (token.includes('anonymous')) {
+      return {
+        success: true,
+        user: {
+          id: 'demo-anonymous',
+          username: 'Anonymous',
+          email: '',
+          isAnonymous: true,
+          joinDate: new Date().toISOString(),
+          postCount: 0
+        }
+      };
+    }
+    
+    // For registered users, find the user (in real app, decode token)
+    const user = mockUsers[0]; // For demo, just return first user
+    return {
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        isAnonymous: user.isAnonymous,
+        joinDate: user.joinDate,
+        postCount: user.postCount
+      }
+    };
+  }
+  
+  if (endpoint === '/auth/logout' && method === 'POST') {
+    localStorage.removeItem('authToken');
+    return { success: true, message: 'Logged out successfully' };
+  }
+  
+  // Handle other endpoints
   if (endpoint === '/boards' && method === 'GET') {
     return { success: true, boards: mockBoards };
   }
@@ -170,44 +310,6 @@ const handleMockRequest = async (endpoint: string, options: RequestInit = {}) =>
     const threadId = endpoint.split('/')[3];
     const threadPosts = mockPosts.filter(p => p.threadId === threadId);
     return { success: true, posts: threadPosts };
-  }
-  
-  if (endpoint === '/auth/anonymous' && method === 'POST') {
-    const mockUser = {
-      id: 'demo-user',
-      username: 'Anonymous',
-      email: '',
-      isAnonymous: true,
-      joinDate: new Date().toISOString(),
-      postCount: 0
-    };
-    
-    // Store a demo token
-    localStorage.setItem('authToken', 'demo-token-' + Date.now());
-    
-    return {
-      success: true,
-      token: 'demo-token-' + Date.now(),
-      user: mockUser
-    };
-  }
-  
-  if (endpoint === '/auth/me' && method === 'GET') {
-    const token = getAuthToken();
-    if (token && token.startsWith('demo-token')) {
-      return {
-        success: true,
-        user: {
-          id: 'demo-user',
-          username: 'Anonymous',
-          email: '',
-          isAnonymous: true,
-          joinDate: new Date().toISOString(),
-          postCount: 0
-        }
-      };
-    }
-    throw new Error('Not authenticated');
   }
   
   // For create operations, return success with mock data
