@@ -3,7 +3,7 @@ import { useBoards } from '../../hooks/useBoards';
 import { BoardCard } from './BoardCard';
 import { CreateBoardModal } from './CreateBoardModal';
 import { CreateBoardData } from '../../types';
-import { Loader2, Zap, Plus, AlertCircle, Globe } from 'lucide-react';
+import { Loader2, Zap, Plus, AlertCircle } from 'lucide-react';
 
 interface BoardListProps {
   onBoardSelect: (boardId: string) => void;
@@ -17,9 +17,6 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
     await createBoard(data);
     setIsCreateModalOpen(false);
   };
-
-  // Check if we're in demo mode
-  const isDemoMode = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
 
   if (isLoading) {
     return (
@@ -66,19 +63,6 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
           Discover communities, share ideas, and connect with people who share your interests.
           Choose a board below to start exploring.
         </p>
-        
-        {/* Demo Mode Notice */}
-        {isDemoMode && (
-          <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
-            <div className="flex items-center space-x-2 text-blue-300">
-              <Globe size={20} />
-              <span className="font-medium">Demo Mode</span>
-            </div>
-            <p className="text-blue-200 text-sm mt-1">
-              You're viewing a demonstration version with sample data. All functionality is available for testing!
-            </p>
-          </div>
-        )}
         
         {/* Create Board Button */}
         <button
