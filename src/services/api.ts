@@ -1,4 +1,106 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Determine the API base URL based on environment
+const getApiBaseUrl = () => {
+  // If we're in development (localhost), use local backend
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+  }
+  
+  // For production deployment, we need to either:
+  // 1. Deploy the backend somewhere (like Railway, Render, etc.)
+  // 2. Use a mock API for demo purposes
+  
+  // For now, let's use mock data for the deployed version
+  return null; // This will trigger mock mode
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Mock data for when backend is not available
+const mockBoards = [
+  {
+    id: '1',
+    name: '/tech/',
+    description: 'Technology discussions, programming, and software development',
+    category: 'Technology',
+    threadCount: 42,
+    postCount: 1337,
+    lastActivity: new Date().toISOString(),
+    isNSFW: false
+  },
+  {
+    id: '2',
+    name: '/gaming/',
+    description: 'Video games, esports, and gaming culture',
+    category: 'Entertainment',
+    threadCount: 28,
+    postCount: 892,
+    lastActivity: new Date(Date.now() - 3600000).toISOString(),
+    isNSFW: false
+  },
+  {
+    id: '3',
+    name: '/art/',
+    description: 'Digital art, traditional art, and creative works',
+    category: 'Creative',
+    threadCount: 15,
+    postCount: 456,
+    lastActivity: new Date(Date.now() - 7200000).toISOString(),
+    isNSFW: false
+  },
+  {
+    id: '4',
+    name: '/random/',
+    description: 'Random discussions and off-topic conversations',
+    category: 'General',
+    threadCount: 67,
+    postCount: 2341,
+    lastActivity: new Date(Date.now() - 1800000).toISOString(),
+    isNSFW: false
+  }
+];
+
+const mockThreads = [
+  {
+    id: '1',
+    boardId: '1',
+    title: 'Welcome to the Tech Board!',
+    content: 'This is a sample thread to demonstrate the application functionality.',
+    author: {
+      id: '1',
+      username: 'TechModerator',
+      email: '',
+      isAnonymous: false,
+      joinDate: new Date().toISOString(),
+      postCount: 100
+    },
+    createdAt: new Date().toISOString(),
+    lastReply: new Date().toISOString(),
+    replyCount: 5,
+    isSticky: true,
+    isLocked: false,
+    images: [],
+    tags: ['welcome', 'announcement']
+  }
+];
+
+const mockPosts = [
+  {
+    id: '1',
+    threadId: '1',
+    content: 'Welcome to NeoBoard! This is a demonstration of the message board functionality.',
+    author: {
+      id: '1',
+      username: 'TechModerator',
+      email: '',
+      isAnonymous: false,
+      joinDate: new Date().toISOString(),
+      postCount: 100
+    },
+    createdAt: new Date().toISOString(),
+    images: [],
+    isOP: true
+  }
+];
 
 // Get auth token from localStorage
 const getAuthToken = () => {
@@ -7,6 +109,12 @@ const getAuthToken = () => {
 
 // API request helper
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+  // If no API_BASE_URL, we're in mock mode
+  if (!API_BASE_URL) {
+    console.log(`🎭 Mock API Request: ${options.method || 'GET'} ${endpoint}`);
+    return handleMockRequest(endpoint, options);
+  }
+
   const token = getAuthToken();
   
   const config: RequestInit = {
@@ -38,6 +146,132 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
     console.error('🚨 API Request Failed:', error);
     throw error;
   }
+};
+
+// Mock API handler
+const handleMockRequest = async (endpoint: string, options: RequestInit = {}) => {
+  const method = options.method || 'GET';
+  
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
+  
+  // Handle different endpoints
+  if (endpoint === '/boards' && method === 'GET') {
+    return { success: true, boards: mockBoards };
+  }
+  
+  if (endpoint.startsWith('/threads/board/') && method === 'GET') {
+    const boardId = endpoint.split('/')[3];
+    const boardThreads = mockThreads.filter(t => t.boardId === boardId);
+    return { success: true, threads: boardThreads };
+  }
+  
+  if (endpoint.startsWith('/posts/thread/') && method === 'GET') {
+    const threadId = endpoint.split('/')[3];
+    const threadPosts = mockPosts.filter(p => p.threadId === threadId);
+    return { success: true, posts: threadPosts };
+  }
+  
+  if (endpoint === '/auth/anonymous' && method === 'POST') {
+    const mockUser = {
+      id: 'demo-user',
+      username: 'Anonymous',
+      email: '',
+      isAnonymous: true,
+      joinDate: new Date().toISOString(),
+      postCount: 0
+    };
+    
+    // Store a demo token
+    localStorage.setItem('authToken', 'demo-token-' + Date.now());
+    
+    return {
+      success: true,
+      token: 'demo-token-' + Date.now(),
+      user: mockUser
+    };
+  }
+  
+  if (endpoint === '/auth/me' && method === 'GET') {
+    const token = getAuthToken();
+    if (token && token.startsWith('demo-token')) {
+      return {
+        success: true,
+        user: {
+          id: 'demo-user',
+          username: 'Anonymous',
+          email: '',
+          isAnonymous: true,
+          joinDate: new Date().toISOString(),
+          postCount: 0
+        }
+      };
+    }
+    throw new Error('Not authenticated');
+  }
+  
+  // For create operations, return success with mock data
+  if (method === 'POST') {
+    if (endpoint === '/boards') {
+      const newBoard = {
+        id: Date.now().toString(),
+        ...JSON.parse(options.body as string),
+        threadCount: 0,
+        postCount: 0,
+        lastActivity: new Date().toISOString()
+      };
+      mockBoards.unshift(newBoard);
+      return { success: true, board: newBoard };
+    }
+    
+    if (endpoint === '/threads') {
+      const threadData = JSON.parse(options.body as string);
+      const newThread = {
+        id: Date.now().toString(),
+        ...threadData,
+        author: {
+          id: 'demo-user',
+          username: 'Anonymous',
+          email: '',
+          isAnonymous: true,
+          joinDate: new Date().toISOString(),
+          postCount: 0
+        },
+        createdAt: new Date().toISOString(),
+        lastReply: new Date().toISOString(),
+        replyCount: 0,
+        isSticky: false,
+        isLocked: false,
+        images: []
+      };
+      mockThreads.unshift(newThread);
+      return { success: true, thread: newThread };
+    }
+    
+    if (endpoint === '/posts') {
+      const postData = JSON.parse(options.body as string);
+      const newPost = {
+        id: Date.now().toString(),
+        ...postData,
+        author: {
+          id: 'demo-user',
+          username: 'Anonymous',
+          email: '',
+          isAnonymous: true,
+          joinDate: new Date().toISOString(),
+          postCount: 0
+        },
+        createdAt: new Date().toISOString(),
+        images: [],
+        isOP: false
+      };
+      mockPosts.push(newPost);
+      return { success: true, post: newPost };
+    }
+  }
+  
+  // Default response for unhandled endpoints
+  throw new Error(`Mock API: Endpoint ${method} ${endpoint} not implemented`);
 };
 
 // Auth API

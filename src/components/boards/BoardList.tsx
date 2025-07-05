@@ -3,7 +3,7 @@ import { useBoards } from '../../hooks/useBoards';
 import { BoardCard } from './BoardCard';
 import { CreateBoardModal } from './CreateBoardModal';
 import { CreateBoardData } from '../../types';
-import { Loader2, Zap, Plus, AlertCircle } from 'lucide-react';
+import { Loader2, Zap, Plus, AlertCircle, Globe } from 'lucide-react';
 
 interface BoardListProps {
   onBoardSelect: (boardId: string) => void;
@@ -18,13 +18,8 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
     setIsCreateModalOpen(false);
   };
 
-  // Debug logging
-  console.log('🎯 BoardList render:', { 
-    boardsCount: boards.length, 
-    isLoading, 
-    error,
-    boards: boards.map(b => ({ id: b.id, name: b.name }))
-  });
+  // Check if we're in demo mode
+  const isDemoMode = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
 
   if (isLoading) {
     return (
@@ -72,6 +67,19 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
           Choose a board below to start exploring.
         </p>
         
+        {/* Demo Mode Notice */}
+        {isDemoMode && (
+          <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6 max-w-2xl mx-auto">
+            <div className="flex items-center space-x-2 text-blue-300">
+              <Globe size={20} />
+              <span className="font-medium">Demo Mode</span>
+            </div>
+            <p className="text-blue-200 text-sm mt-1">
+              You're viewing a demonstration version with sample data. All functionality is available for testing!
+            </p>
+          </div>
+        )}
+        
         {/* Create Board Button */}
         <button
           onClick={() => setIsCreateModalOpen(true)}
@@ -80,15 +88,6 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
           <Plus size={20} />
           <span>Create New Board</span>
         </button>
-      </div>
-
-      {/* Debug Info */}
-      <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 text-sm text-gray-300">
-        <h4 className="font-semibold mb-2">Debug Info:</h4>
-        <p>Boards loaded: {boards.length}</p>
-        <p>Categories: {categories.join(', ')}</p>
-        <p>Loading: {isLoading ? 'Yes' : 'No'}</p>
-        <p>Error: {error || 'None'}</p>
       </div>
 
       {/* Boards by Category */}
