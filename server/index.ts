@@ -19,30 +19,26 @@ console.log('📊 Environment:', process.env.NODE_ENV || 'development');
 console.log('🔑 MongoDB URI exists:', !!process.env.MONGO_URI);
 console.log('🔐 JWT Secret exists:', !!process.env.JWT_SECRET);
 
+// Debug environment variables
+if (process.env.MONGO_URI) {
+  const uriForLogging = process.env.MONGO_URI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@');
+  console.log('🔍 MongoDB URI (masked):', uriForLogging);
+} else {
+  console.error('❌ MONGO_URI not found in environment variables');
+  console.log('📋 Available env vars:', Object.keys(process.env).filter(key => key.includes('MONGO')));
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Security middleware
+app.use(helmet());
+
+// CORS configuration
 app.use(cors({
   origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
-}));
-
-// Initialize MongoDB connection (don't await - let it connect in background)
-console.log('🔄 Initializing database connection...');
-connectDB()
-  .then(() => {
-    console.log('✅ Database initialization complete');
-  })
-  .catch((error) => {
-    console.error('❌ Database initialization failed:', error.message);
-  });
-
-// Security middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
 }));
 
 // Rate limiting
@@ -141,34 +137,36 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: `Route not found: ${req.originalUrl}` });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`📋 API Base: http://localhost:${PORT}/api`);
-  console.log(`🔍 Initial Database Status: ${mongoose.connection.readyState === 1 ? 'Connected' : 'Not Connected'}`);
-  
-  // Check database connection status every 5 seconds for the first minute
-  let checkCount = 0;
-  const connectionChecker = setInterval(() => {
-    checkCount++;
-    const dbState = mongoose.connection.readyState;
-    const status = {
-      0: 'disconnected',
-      1: 'connected',
-      2: 'connecting', 
-      3: 'disconnecting'
-    }[dbState] || 'unknown';
+// Start server function
+async function startServer() {
+  try {
+    // Wait for database connection before starting server
+    console.log('🔄 Connecting to database...');
+    await connectDB();
+    console.log('✅ Database connection established');
+
+    // Start the server only after database is connected
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+      console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`📋 API Base: http://localhost:${PORT}/api`);
+      console.log(`✅ Database Status: Connected`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error.message);
+    console.error('💡 Please check your MongoDB connection and try again');
     
-    console.log(`🔍 DB Status Check ${checkCount}: ${status} (${dbState})`);
+    // Additional debugging info
+    console.error('🔍 Debug Info:');
+    console.error('   - MONGO_URI exists:', !!process.env.MONGO_URI);
+    console.error('   - NODE_ENV:', process.env.NODE_ENV);
+    console.error('   - Current working directory:', process.cwd());
     
-    if (dbState === 1) {
-      console.log('✅ Database connection established!');
-      clearInterval(connectionChecker);
-    } else if (checkCount >= 12) { // Stop after 1 minute
-      console.log('⏰ Stopped checking database status after 1 minute');
-      clearInterval(connectionChecker);
-    }
-  }, 5000);
-});
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
