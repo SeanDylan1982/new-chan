@@ -20,12 +20,14 @@ export const connectDB = async () => {
     
     // Simplified connection options that work better with Atlas
     const connectionOptions = {
-      serverSelectionTimeoutMS: 10000, // 10 seconds
+      serverSelectionTimeoutMS: 30000, // Increased to 30 seconds
       socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
+      connectTimeoutMS: 30000, // Increased to 30 seconds
       bufferCommands: false,
       maxPoolSize: 10,
       minPoolSize: 1,
+      retryWrites: true,
+      w: 'majority'
     };
 
     console.log('🔧 Connection options:', JSON.stringify(connectionOptions, null, 2));
@@ -45,6 +47,7 @@ export const connectDB = async () => {
 
     mongoose.connection.on('error', (err) => {
       console.error('❌ MongoDB connection error:', err.message);
+      console.error('❌ Full error:', err);
     });
 
     mongoose.connection.on('disconnected', () => {
@@ -56,7 +59,18 @@ export const connectDB = async () => {
     });
 
     console.log('⏳ Establishing connection...');
-    const conn = await mongoose.connect(mongoURI, connectionOptions);
+    
+    // Add timeout wrapper
+    const connectWithTimeout = () => {
+      return Promise.race([
+        mongoose.connect(mongoURI, connectionOptions),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Connection timeout after 30 seconds')), 30000)
+        )
+      ]);
+    };
+
+    const conn = await connectWithTimeout() as typeof mongoose;
     
     console.log(`✅ MongoDB Connected Successfully!`);
     console.log(`🏠 Host: ${conn.connection.host}`);
@@ -67,6 +81,10 @@ export const connectDB = async () => {
     try {
       console.log('🧪 Testing database operations...');
       const db = conn.connection.db;
+      
+      if (!db) {
+        throw new Error('Database object is null');
+      }
       
       const collections = await db.listCollections().toArray();
       console.log(`📋 Collections Available: ${collections.length > 0 ? collections.map(c => c.name).join(', ') : 'None'}`);
@@ -91,6 +109,7 @@ export const connectDB = async () => {
       
     } catch (statsError) {
       console.warn('⚠️ Could not fetch database stats:', statsError.message);
+      console.warn('⚠️ Full stats error:', statsError);
     }
     
     // Graceful shutdown
@@ -107,12 +126,14 @@ export const connectDB = async () => {
     console.error('❌ MongoDB Connection Failed!');
     console.error('📋 Error Type:', error.name);
     console.error('📋 Error Message:', error.message);
+    console.error('📋 Full Error:', error);
     
     if (error.message.includes('timeout')) {
       console.error('⏰ Connection timed out. Most common causes:');
       console.error('   1. 🌐 IP address not whitelisted in MongoDB Atlas Network Access');
       console.error('   2. 🔌 Network connectivity issues or firewall blocking connection');
       console.error('   3. ⏸️ MongoDB Atlas cluster is paused or unavailable');
+      console.error('   4. 🔐 Invalid credentials (username/password)');
     }
     
     if (error.name === 'MongoServerSelectionError') {
@@ -120,6 +141,7 @@ export const connectDB = async () => {
       console.error('   1. 🚫 IP not whitelisted in MongoDB Atlas');
       console.error('   2. 🔐 Invalid credentials (username/password)');
       console.error('   3. 🌐 Network/DNS issues');
+      console.error('   4. 🔗 Incorrect connection string format');
     }
     
     // Re-throw the error to be handled by the server startup
@@ -153,8 +175,8 @@ const createSampleData = async (db: any) => {
         name: '/tech/',
         description: 'Technology discussions, programming, and software development',
         category: 'Technology',
-        threadCount: 0,
-        postCount: 0,
+        threadCount: 42,
+        postCount: 1337,
         lastActivity: new Date(),
         isNSFW: false,
         isActive: true,
@@ -164,9 +186,9 @@ const createSampleData = async (db: any) => {
         name: '/gaming/',
         description: 'Video games, esports, and gaming culture',
         category: 'Entertainment',
-        threadCount: 0,
-        postCount: 0,
-        lastActivity: new Date(),
+        threadCount: 28,
+        postCount: 892,
+        lastActivity: new Date(Date.now() - 6 * 60 * 1000), // 6 minutes ago
         isNSFW: false,
         isActive: true,
         createdBy: userResult.insertedId
@@ -175,9 +197,9 @@ const createSampleData = async (db: any) => {
         name: '/art/',
         description: 'Digital art, traditional art, and creative works',
         category: 'Creative',
-        threadCount: 0,
-        postCount: 0,
-        lastActivity: new Date(),
+        threadCount: 15,
+        postCount: 456,
+        lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
         isNSFW: false,
         isActive: true,
         createdBy: userResult.insertedId
@@ -186,9 +208,9 @@ const createSampleData = async (db: any) => {
         name: '/random/',
         description: 'Random discussions and off-topic conversations',
         category: 'General',
-        threadCount: 0,
-        postCount: 0,
-        lastActivity: new Date(),
+        threadCount: 67,
+        postCount: 2103,
+        lastActivity: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
         isNSFW: false,
         isActive: true,
         createdBy: userResult.insertedId

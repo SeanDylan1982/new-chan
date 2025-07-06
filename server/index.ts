@@ -19,20 +19,26 @@ console.log('📊 Environment:', process.env.NODE_ENV || 'development');
 console.log('🔑 MongoDB URI exists:', !!process.env.MONGO_URI);
 console.log('🔐 JWT Secret exists:', !!process.env.JWT_SECRET);
 
+// Debug environment variables
+if (process.env.MONGO_URI) {
+  const uriForLogging = process.env.MONGO_URI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@');
+  console.log('🔍 MongoDB URI (masked):', uriForLogging);
+} else {
+  console.error('❌ MONGO_URI not found in environment variables');
+  console.log('📋 Available env vars:', Object.keys(process.env).filter(key => key.includes('MONGO')));
+}
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Security middleware
+app.use(helmet());
+
+// CORS configuration
 app.use(cors({
   origin: ['http://localhost:5173', 'https://new-chan.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
-}));
-
-// Security middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
 }));
 
 // Rate limiting
@@ -151,6 +157,13 @@ async function startServer() {
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);
     console.error('💡 Please check your MongoDB connection and try again');
+    
+    // Additional debugging info
+    console.error('🔍 Debug Info:');
+    console.error('   - MONGO_URI exists:', !!process.env.MONGO_URI);
+    console.error('   - NODE_ENV:', process.env.NODE_ENV);
+    console.error('   - Current working directory:', process.cwd());
+    
     process.exit(1);
   }
 }
