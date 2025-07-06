@@ -15,7 +15,7 @@ router.get('/board/:boardId', optionalAuth, async (req: AuthRequest, res) => {
     const { sort = 'activity', page = 1, limit = 20 } = req.query;
 
     // Validate board exists
-    const board = await Board.findOne({ _id: boardId, isActive: true });  
+    const board = await Board.findOne({ _id: boardId, isActive: true });
     if (!board) {
       return res.status(404).json({ error: 'Board not found' });
     }

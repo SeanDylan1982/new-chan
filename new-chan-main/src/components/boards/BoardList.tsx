@@ -18,14 +18,6 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
     setIsCreateModalOpen(false);
   };
 
-  // Debug logging
-  console.log('🎯 BoardList render:', { 
-    boardsCount: boards.length, 
-    isLoading, 
-    error,
-    boards: boards.map(b => ({ id: b.id, name: b.name }))
-  });
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -66,14 +58,12 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
             <Zap className="text-white" size={32} />
           </div>
         </div>
-        <h1 className="text-4xl font-bold text-white mb-2">
-          Welcome to NeoBoard
-        </h1>
+        <h1 className="text-4xl font-bold text-white mb-2">Welcome to NeoBoard</h1>
         <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-6">
-          Discover communities, share ideas, and connect with people who share
-          your interests. Choose a board below to start exploring.
+          Discover communities, share ideas, and connect with people who share your interests.
+          Choose a board below to start exploring.
         </p>
-
+        
         {/* Create Board Button */}
         <button
           onClick={() => setIsCreateModalOpen(true)}
@@ -83,42 +73,39 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
           <span>Create New Board</span>
         </button>
       </div>
+
       {/* Boards by Category */}
-      {categories.length > 0 &&
-        categories.map((category) => {
-          const categoryBoards = boards.filter(
-            (board) => board.category === category
-          );
-
-          return (
-            <div key={category} className="space-y-6">
-              <div className="flex items-center space-x-3">
-                <h2 className="text-2xl font-bold text-white">{category}</h2>
-                <div className="flex-1 h-px bg-gradient-to-r from-gray-600 to-transparent"></div>
-                <span className="text-sm text-gray-400 bg-gray-800 px-3 py-1 rounded-full">
-                  {categoryBoards.length} boards
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {categoryBoards.map((board) => (
-                  <BoardCard
-                    key={board.id}
-                    board={board}
-                    onClick={() => onBoardSelect(board.id)}
-                  />
-                ))}
-              </div>
+      {categories.length > 0 && categories.map(category => {
+        const categoryBoards = boards.filter(board => board.category === category);
+        
+        return (
+          <div key={category} className="space-y-6">
+            <div className="flex items-center space-x-3">
+              <h2 className="text-2xl font-bold text-white">{category}</h2>
+              <div className="flex-1 h-px bg-gradient-to-r from-gray-600 to-transparent"></div>
+              <span className="text-sm text-gray-400 bg-gray-800 px-3 py-1 rounded-full">
+                {categoryBoards.length} boards
+              </span>
             </div>
-          );
-        })}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {categoryBoards.map(board => (
+                <BoardCard
+                  key={board.id}
+                  board={board}
+                  onClick={() => onBoardSelect(board.id)}
+                />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
       {boards.length === 0 && !isLoading && !error && (
         <div className="text-center py-12">
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-8">
             <Plus className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              No boards yet
-            </h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No boards yet</h3>
             <p className="text-gray-600 mb-6">
               Be the first to create a board and start building your community!
             </p>
@@ -131,6 +118,7 @@ export const BoardList: React.FC<BoardListProps> = ({ onBoardSelect }) => {
           </div>
         </div>
       )}
+
       <CreateBoardModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
