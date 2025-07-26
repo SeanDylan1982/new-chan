@@ -88,7 +88,7 @@ function App() {
       
       case 'board':
         const board = getCurrentBoard();
-        if (!board) return <div className="text-center py-12 text-gray-500">Board not found</div>;
+        if (!board) return <div className="text-center py-2 text-gray-500">Board not found</div>;
         return (
           <BoardView
             board={board}
@@ -99,7 +99,7 @@ function App() {
       
       case 'thread':
         const thread = getCurrentThread();
-        if (!thread) return <div className="text-center py-12 text-gray-500">Thread not found</div>;
+        if (!thread) return <div className="text-center py-2 text-gray-500">Thread not found</div>;
         return (
           <ThreadView
             thread={thread}
@@ -118,10 +118,10 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-700 to-gray-900">
       <Header onAuthModal={setAuthModalState} />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-2 sm:px-2 lg:px-4 py-4">
         {renderCurrentView()}
       </main>
 

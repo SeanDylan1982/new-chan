@@ -43,7 +43,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({ board, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:bg-white hover:border-cyan-300 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] group"
+      className="bg-gray-50 border border-gray-200 rounded-xl p-4 hover:bg-white hover:border-cyan-300 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] group"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
