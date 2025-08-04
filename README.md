@@ -8,6 +8,9 @@ A modern, full-stack message board application built with React, TypeScript, Nod
 ![Node.js](https://img.shields.io/badge/Node.js-Express-green)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-green)
 
+### Live Preview
+https://newchan.netlify.app
+
 ## ✨ Features
 
 ### 🎯 Core Features
@@ -331,3 +334,4 @@ If you encounter any issues or have questions:
 ---
 
 **Built with ❤️ by the NeoBoard team**
+
